@@ -1,8 +1,8 @@
-﻿using RabbitMQ.Client;
-using static MongoDB.Driver.WriteConcern;
+﻿using FlightManagementSystem.Models;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
 using System.Text;
-using FlightManagementSystem.Services;
-using System.Threading.Channels;
+using System.Text.Json;
 
 namespace FlightManagementSystem.Infrastructure
 {
@@ -67,6 +67,42 @@ namespace FlightManagementSystem.Infrastructure
             }
         }
 
+        public async Task<FlightNotification> ConsumeMessageAsync(CancellationToken cancellationToken)
+        {
+            // Use AsyncEventingBasicConsumer instead of EventingBasicConsumer
+            var consumer = new AsyncEventingBasicConsumer(_channel!);
+
+            var taskCompletionSource = new TaskCompletionSource<FlightNotification>();
+
+            // Use async event handler for ReceivedAsync
+            consumer.ReceivedAsync += (sender, e) =>
+            {
+                // Deserialize the message from the queue
+                var message = Encoding.UTF8.GetString(e.Body.Span);
+
+                var flightNotification = JsonSerializer.Deserialize<FlightNotification>(message);
+
+                if (flightNotification != null)
+                {
+                    // Set the result when the message is processed
+                    taskCompletionSource.SetResult(flightNotification);
+                }
+                else
+                {
+                    // Handle the case where flightNotification is null
+                    taskCompletionSource.SetException(new Exception("Failed to deserialize the message."));
+                }
+
+                // Return Task.CompletedTask to indicate completion of async operation without returning a value
+                return Task.CompletedTask;
+            };
+
+            // Start consuming the messages asynchronously
+            await _channel!.BasicConsumeAsync(queue: "FlightPricesQueue", autoAck: true, consumer: consumer);
+
+            // Wait until the message is processed
+            return await taskCompletionSource.Task;
+        }
 
         public async void Dispose()
         {

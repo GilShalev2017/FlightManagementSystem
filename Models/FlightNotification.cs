@@ -1,6 +1,6 @@
 ﻿namespace FlightManagementSystem.Models
 {
-    public class FlightPrice
+    public class FlightNotification
     {
         public required string FlightId { get; set; }
         public required string Airline { get; set; }

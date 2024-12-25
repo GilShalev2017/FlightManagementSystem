@@ -1,13 +1,11 @@
 using FlightManagementSystem.Infrastructure;
 using FlightManagementSystem.Services;
-using Microsoft.AspNetCore.Hosting;
 using MongoDB.Driver;
 using NLog;
-using NLog.Extensions.Logging;
 using NLog.Web;
 using RabbitMQ.Client;
 
-var logger = NLog.LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
+var logger = LogManager.Setup().LoadConfigurationFromAppSettings().GetCurrentClassLogger();
 
 try
 {
@@ -19,6 +17,7 @@ try
     builder.Services.AddSingleton<INotificationService, NotificationService>();
     builder.Services.AddSingleton<IUserService, UserService>();
     builder.Services.AddSingleton<IUserRepository, UserRepository>();
+    builder.Services.AddSingleton<IPushNotificationService, PushNotificationService>();
 
     builder.Services.AddHttpClient(); 
     builder.Services.AddHostedService<FlightPriceService>();

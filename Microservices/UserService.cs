@@ -6,13 +6,12 @@ namespace FlightManagementSystem.Services
 {
     public interface IUserService
     {
-        //Managing Users
         Task<User> AddUserAsync(User user);
         Task<User?> GetUserByIdAsync(string id);
         Task<IEnumerable<User>> GetAllUsersAsync(string? name = null);
         Task<User> UpdateUserAsync(User user);
         Task<User> DeleteUserAsync(string id);
-        //Managing AlertPreferences
+
         Task<User?> AddAlertPreferenceAsync(string userId, UserAlertPreference preference);
         Task<User?> UpdateAlertPreferenceAsync(string userId, string preferenceId, UserAlertPreference preference);
         Task<User?> DeleteAlertPreferenceAsync(string userId, string preferenceId);

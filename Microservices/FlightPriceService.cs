@@ -74,10 +74,10 @@ namespace FlightManagementSystem.Services
                     if (response.IsSuccessStatusCode)
                     {
                         var jsonResponse = await response.Content.ReadAsStringAsync(cancellationToken);
-                        var flightPrices = JsonSerializer.Deserialize<List<FlightPrice>>(jsonResponse);
+                        var flightPrices = JsonSerializer.Deserialize<List<FlightNotification>>(jsonResponse);
 
                         // Publish each flight price to RabbitMQ
-                        foreach (var price in flightPrices ?? new List<FlightPrice>())
+                        foreach (var price in flightPrices ?? new List<FlightNotification>())
                         {
                             await PublishToQueueAsync(price);
                         }
@@ -94,12 +94,13 @@ namespace FlightManagementSystem.Services
             }
         }
 
-        private async Task PublishToQueueAsync(FlightPrice price)
+        private async Task PublishToQueueAsync(FlightNotification price)
         {
             try
             {
                 // Serialize the message
                 var message = JsonSerializer.Serialize(price);
+             
                 var body = Encoding.UTF8.GetBytes(message);
 
                 // Publish message
