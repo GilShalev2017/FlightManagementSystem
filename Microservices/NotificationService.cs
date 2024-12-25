@@ -11,10 +11,10 @@ namespace FlightManagementSystem.Services
     public class NotificationService : BackgroundService, INotificationService
     {
         private readonly IUserService _userService;
-        private readonly RabbitMqService _rabbitMqService;
+        private readonly IRabbitMqService _rabbitMqService;
         private readonly IPushNotificationService _pushNotificationService;
 
-        public NotificationService(IUserService userService, RabbitMqService rabbitMqService, IPushNotificationService pushNotificationService)
+        public NotificationService(IUserService userService, IRabbitMqService rabbitMqService, IPushNotificationService pushNotificationService)
         {
             _userService = userService;
             _rabbitMqService = rabbitMqService;

@@ -18,10 +18,10 @@ namespace FlightManagementSystem.Services
         private readonly IConfiguration _configuration;
         private readonly IHttpClientFactory _httpClientFactory;
         private readonly List<string> _apiEndpoints;
-        private readonly RabbitMqService _rabbitMqService;
+        private readonly IRabbitMqService _rabbitMqService;
 
         public FlightPriceService(ILogger<FlightPriceService> logger, IConfiguration configuration, 
-            IHttpClientFactory httpClientFactory, RabbitMqService rabbitMqService)
+            IHttpClientFactory httpClientFactory, IRabbitMqService rabbitMqService)
         {
             _logger = logger;
             _configuration = configuration;
@@ -98,15 +98,10 @@ namespace FlightManagementSystem.Services
         {
             try
             {
-                // Serialize the message
-                var message = JsonSerializer.Serialize(price);
-             
-                var body = Encoding.UTF8.GetBytes(message);
-
                 // Publish message
-                await _rabbitMqService.PublishMessageAsync(body);
+                await _rabbitMqService.PublishMessageAsync(price);
 
-                _logger.LogInformation($"Published flight price to queue: {message}");
+                _logger.LogInformation($"Published flight price to queue: {price}");
             }
             catch (Exception ex)
             {

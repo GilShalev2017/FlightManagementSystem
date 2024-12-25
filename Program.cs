@@ -22,7 +22,7 @@ try
     builder.Services.AddHttpClient(); 
     builder.Services.AddHostedService<FlightPriceService>();
 
-    builder.Services.AddSingleton<RabbitMqService>(sp =>
+    builder.Services.AddSingleton<IRabbitMqService,RabbitMqService>(sp =>
     {
         var configuration = sp.GetRequiredService<IConfiguration>();
         var logger = sp.GetRequiredService<ILogger<RabbitMqService>>();
@@ -41,6 +41,7 @@ try
         return new RabbitMqService(logger, factory);
     });
 
+    builder.Services.AddHostedService<NotificationService>();
 
     builder.Logging.ClearProviders();
 

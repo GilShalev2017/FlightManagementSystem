@@ -6,7 +6,13 @@ using System.Text.Json;
 
 namespace FlightManagementSystem.Infrastructure
 {
-    public class RabbitMqService
+    public interface IRabbitMqService
+    {
+        Task<FlightNotification> ConsumeMessageAsync(CancellationToken cancellationToken);
+        Task PublishMessageAsync(FlightNotification message);
+    }
+
+    public class RabbitMqService : IRabbitMqService
     {
         private readonly ILogger<RabbitMqService> _logger;
         private IConnection? _connection;
@@ -24,7 +30,7 @@ namespace FlightManagementSystem.Infrastructure
             try
             {
                 _connection = connectionFactory.CreateConnectionAsync().Result;
-              
+
                 _channel = _connection.CreateChannelAsync().Result;
 
                 // Declare the queue once
@@ -46,10 +52,15 @@ namespace FlightManagementSystem.Infrastructure
             }
         }
 
-        public async Task PublishMessageAsync(byte[] body)
+        public async Task PublishMessageAsync(FlightNotification price)
         {
             try
             {
+                // Serialize the message
+                var message = JsonSerializer.Serialize(price);
+
+                var body = Encoding.UTF8.GetBytes(message);
+
                 // Publish to RabbitMQ
                 await _channel!.BasicPublishAsync(
                     exchange: "",
@@ -69,36 +80,49 @@ namespace FlightManagementSystem.Infrastructure
 
         public async Task<FlightNotification> ConsumeMessageAsync(CancellationToken cancellationToken)
         {
-            // Use AsyncEventingBasicConsumer instead of EventingBasicConsumer
+            // Use AsyncEventingBasicConsumer for async operations
             var consumer = new AsyncEventingBasicConsumer(_channel!);
 
             var taskCompletionSource = new TaskCompletionSource<FlightNotification>();
 
             // Use async event handler for ReceivedAsync
-            consumer.ReceivedAsync += (sender, e) =>
+            consumer.ReceivedAsync += async (sender, e) =>
             {
-                // Deserialize the message from the queue
-                var message = Encoding.UTF8.GetString(e.Body.Span);
-
-                var flightNotification = JsonSerializer.Deserialize<FlightNotification>(message);
-
-                if (flightNotification != null)
+                try
                 {
-                    // Set the result when the message is processed
-                    taskCompletionSource.SetResult(flightNotification);
+                    // Deserialize the message from the queue
+                    var message = Encoding.UTF8.GetString(e.Body.Span);
+
+                    var flightNotification = JsonSerializer.Deserialize<FlightNotification>(message);
+
+                    if (flightNotification != null)
+                    {
+                        // Set the result when the message is processed successfully
+                        taskCompletionSource.SetResult(flightNotification);
+
+                        // Acknowledge the message to remove it from the queue
+                        await _channel!.BasicAckAsync(deliveryTag: e.DeliveryTag, multiple: false);
+                    }
+                    else
+                    {
+                        // Ignore messages that are not of type FlightNotification
+                        await _channel!.BasicRejectAsync(deliveryTag: e.DeliveryTag, requeue: false);
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    // Handle the case where flightNotification is null
-                    taskCompletionSource.SetException(new Exception("Failed to deserialize the message."));
+                    // Log the error and reject the message to avoid reprocessing
+                    await _channel!.BasicRejectAsync(deliveryTag: e.DeliveryTag, requeue: false);
+                   
+                    taskCompletionSource.SetException(ex);
                 }
 
-                // Return Task.CompletedTask to indicate completion of async operation without returning a value
-                return Task.CompletedTask;
+                // Return Task.CompletedTask to indicate completion of async operation
+                await Task.CompletedTask;
             };
 
             // Start consuming the messages asynchronously
-            await _channel!.BasicConsumeAsync(queue: "FlightPricesQueue", autoAck: true, consumer: consumer);
+            await _channel!.BasicConsumeAsync(queue: "FlightPricesQueue", autoAck: false, consumer: consumer);
 
             // Wait until the message is processed
             return await taskCompletionSource.Task;
