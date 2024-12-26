@@ -1,6 +1,6 @@
 ﻿namespace FlightManagementSystem.Models
 {
-    public class UserAlertPreference
+    public class AlertPreference
     {
         public string? PreferenceId { get; set; }
         public required string Destination { get; set; }

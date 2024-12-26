@@ -69,11 +69,13 @@ namespace FlightManagementSystem.Services
                 try
                 {
                     _logger.LogInformation($"Fetching flight prices from {endpoint}...");
+                  
                     var response = await httpClient.GetAsync(endpoint, cancellationToken);
 
                     if (response.IsSuccessStatusCode)
                     {
                         var jsonResponse = await response.Content.ReadAsStringAsync(cancellationToken);
+                    
                         var flightPrices = JsonSerializer.Deserialize<List<FlightNotification>>(jsonResponse);
 
                         // Publish each flight price to RabbitMQ

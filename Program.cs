@@ -14,7 +14,7 @@ try
     var builder = WebApplication.CreateBuilder(args);
 
     builder.Services.AddSingleton<IFlightPriceService, FlightPriceService>();
-    builder.Services.AddSingleton<INotificationService, NotificationService>();
+    builder.Services.AddSingleton<NotificationService>();
     builder.Services.AddSingleton<IUserService, UserService>();
     builder.Services.AddSingleton<IUserRepository, UserRepository>();
     builder.Services.AddSingleton<IPushNotificationService, PushNotificationService>();

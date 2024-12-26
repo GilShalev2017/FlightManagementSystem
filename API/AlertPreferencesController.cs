@@ -16,7 +16,7 @@ namespace FlightManagementSystem.API
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddAlertPreference(string userId, [FromBody] UserAlertPreference newPreference)
+        public async Task<IActionResult> AddAlertPreference(string userId, [FromBody] AlertPreference newPreference)
         {
             if (newPreference == null)
             {
@@ -33,7 +33,7 @@ namespace FlightManagementSystem.API
         }
 
         [HttpPut("{preferenceId}")]
-        public async Task<IActionResult> UpdateAlertPreference(string userId, string preferenceId, [FromBody] UserAlertPreference updatedPreference)
+        public async Task<IActionResult> UpdateAlertPreference(string userId, string preferenceId, [FromBody] AlertPreference updatedPreference)
         {
             if (updatedPreference == null)
             {

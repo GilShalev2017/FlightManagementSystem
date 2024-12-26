@@ -67,6 +67,7 @@ namespace FlightManagementSystem.Infrastructure
                 throw new ArgumentException("User ID cannot be null or empty.", nameof(id));
 
             var filter = Builders<User>.Filter.Eq(u => u.Id, id);
+
             var deletedUser = await _userCollection.FindOneAndDeleteAsync(filter);
 
             return deletedUser; // Return the deleted user (null if not found)

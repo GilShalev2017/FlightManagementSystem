@@ -12,8 +12,8 @@ namespace FlightManagementSystem.Services
         Task<User> UpdateUserAsync(User user);
         Task<User> DeleteUserAsync(string id);
 
-        Task<User?> AddAlertPreferenceAsync(string userId, UserAlertPreference preference);
-        Task<User?> UpdateAlertPreferenceAsync(string userId, string preferenceId, UserAlertPreference preference);
+        Task<User?> AddAlertPreferenceAsync(string userId, AlertPreference preference);
+        Task<User?> UpdateAlertPreferenceAsync(string userId, string preferenceId, AlertPreference preference);
         Task<User?> DeleteAlertPreferenceAsync(string userId, string preferenceId);
     }
 
@@ -109,7 +109,7 @@ namespace FlightManagementSystem.Services
         #endregion Users
 
         #region AlertPreferences
-        public async Task<User?> AddAlertPreferenceAsync(string userId, UserAlertPreference preference)
+        public async Task<User?> AddAlertPreferenceAsync(string userId, AlertPreference preference)
         {
             var user = await _userRepository.GetUserByIdAsync(userId);
             if (user == null)
@@ -128,7 +128,7 @@ namespace FlightManagementSystem.Services
             return user;
         }
 
-        public async Task<User?> UpdateAlertPreferenceAsync(string userId, string preferenceId, UserAlertPreference updatedPreference)
+        public async Task<User?> UpdateAlertPreferenceAsync(string userId, string preferenceId, AlertPreference updatedPreference)
         {
             var user = await _userRepository.GetUserByIdAsync(userId);
             if (user == null)

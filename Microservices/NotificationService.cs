@@ -3,12 +3,7 @@ using FlightManagementSystem.Models;
 
 namespace FlightManagementSystem.Services
 {
-    public interface INotificationService
-    {
-        // Task ProcessNotificationAsync(FlightNotification flightMessage);
-    }
-
-    public class NotificationService : BackgroundService, INotificationService
+    public class NotificationService : BackgroundService
     {
         private readonly IUserService _userService;
         private readonly IRabbitMqService _rabbitMqService;
@@ -25,9 +20,9 @@ namespace FlightManagementSystem.Services
         {
             while (!stoppingToken.IsCancellationRequested)
             {
-                // Pull messages from RabbitMQ
+                // Pull messages from RabbitMQ in batches
                 var flightMessage = await _rabbitMqService.ConsumeMessageAsync(stoppingToken);
-          
+
                 if (flightMessage != null)
                 {
                     await ProcessNotificationAsync(flightMessage);
@@ -45,27 +40,20 @@ namespace FlightManagementSystem.Services
             var users = await _userService.GetAllUsersAsync();
 
             // Filter clients based on their alert preferences and flight price
-            var relevantUsers = users.Where(user => user.AlertPreferences.Any(preference => preference.MaxPrice >= flightMessage.Price)).ToList();
+            var relevantUsers = users.Where(user => user.AlertPreferences.Any(preference => preference.MaxPrice >= flightMessage.Price && preference.Destination == flightMessage.Destination)).ToList();
 
             // Send notifications to these clients
             foreach (var user in relevantUsers)
             {
-                await SendNotificationAsync(user, flightMessage);
+                SendNotificationAsync(user, flightMessage);
             }
         }
 
-        // This method sends a notification to the client (you can implement your own notification mechanism here)
-        private async Task SendNotificationAsync(User user, FlightNotification flightMessage)
+        private void SendNotificationAsync(User user, FlightNotification flightMessage)
         {
-            // Construct the notification message
             var notificationMessage = $"Hi {user.Name}, the flight '{flightMessage.Airline}' from {flightMessage.Origin} to {flightMessage.Destination} is now available for {flightMessage.Price} {flightMessage.Currency}.";
 
-            // Use the push notification service to send the alert
             _pushNotificationService.SendPushAlert(notificationMessage);
-
-            // Simulate sending notification delay
-            await Task.Delay(500);
         }
-
     }
 }
